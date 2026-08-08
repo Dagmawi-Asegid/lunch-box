@@ -19,6 +19,14 @@ class RestaurantViewModel(
     private val _error = MutableLiveData<String?>(null)
     val error: LiveData<String?> = _error
 
+    // The last full (unfiltered) list fetched from Firestore, so search can
+    // filter client-side instead of re-querying — this makes search
+    // case-insensitive and substring-based, not just a case-sensitive
+    // prefix match (Firestore range queries compare bytes, so a
+    // lowercase query would never match a capitalized name).
+    private var lastLoaded: List<Restaurant> = emptyList()
+    private var currentQuery: String = ""
+
     var currentSort: SortOption = SortOption.RATING
         private set
 
@@ -26,7 +34,8 @@ class RestaurantViewModel(
         currentSort = sortBy
         viewModelScope.launch {
             try {
-                _restaurants.value = repository.fetchRestaurants(sortBy, locationFilter)
+                lastLoaded = repository.fetchRestaurants(sortBy, locationFilter)
+                _restaurants.value = applyQuery(lastLoaded)
                 _error.value = null
             } catch (e: Exception) {
                 _error.value = e.message ?: "Failed to load restaurants"
@@ -35,17 +44,12 @@ class RestaurantViewModel(
     }
 
     fun search(query: String) {
-        if (query.isBlank()) {
-            load()
-            return
-        }
-        viewModelScope.launch {
-            try {
-                _restaurants.value = repository.searchByName(query)
-                _error.value = null
-            } catch (e: Exception) {
-                _error.value = e.message ?: "Search failed"
-            }
-        }
+        currentQuery = query
+        _restaurants.value = applyQuery(lastLoaded)
+    }
+
+    private fun applyQuery(list: List<Restaurant>): List<Restaurant> {
+        if (currentQuery.isBlank()) return list
+        return list.filter { it.name.contains(currentQuery, ignoreCase = true) }
     }
 }

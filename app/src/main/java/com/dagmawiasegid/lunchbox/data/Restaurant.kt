@@ -1,7 +1,9 @@
 package com.dagmawiasegid.lunchbox.data
 
+import com.google.firebase.firestore.DocumentId
+
 data class Restaurant(
-    val id: String = "",
+    @DocumentId val id: String = "",
     val name: String = "",
     val location: String = "",
     val cuisine: String = "",

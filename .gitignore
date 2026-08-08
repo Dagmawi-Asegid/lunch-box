@@ -3,12 +3,16 @@
 /local.properties
 /.idea/
 .DS_Store
-/build
+build/
 /captures
 .externalNativeBuild
 .cxx
-local.properties
 
-# Firebase config is project-specific — generate your own from the
-# Firebase console and drop it in app/ before building.
-app/google-services.json
+# Firebase local emulator
+.firebase/
+firestore-debug.log
+firebase-debug.log
+ui-debug.log
+
+# Seed script deps
+scripts/node_modules/

@@ -31,16 +31,6 @@ class RestaurantRepository(
         return query.get().await().toObjects(Restaurant::class.java)
     }
 
-    suspend fun searchByName(prefix: String): List<Restaurant> {
-        return restaurants
-            .orderBy("name")
-            .whereGreaterThanOrEqualTo("name", prefix)
-            .whereLessThanOrEqualTo("name", prefix + "")
-            .get()
-            .await()
-            .toObjects(Restaurant::class.java)
-    }
-
     suspend fun getReviewsFor(restaurantId: String): List<Review> {
         return reviews
             .whereEqualTo("restaurantId", restaurantId)
@@ -53,11 +43,15 @@ class RestaurantRepository(
     /**
      * Adds a review, then recomputes and persists the restaurant's aggregate
      * rating/review count so list sorting and filtering stay accurate.
+     *
+     * Fetches existing reviews *before* adding the new one — querying after
+     * the add would double-count the just-written review, since Firestore's
+     * read-after-write consistency means it's already visible to the query.
      */
     suspend fun submitReview(restaurantId: String, review: Review) {
+        val existing = getReviewsFor(restaurantId)
         reviews.add(review).await()
 
-        val existing = getReviewsFor(restaurantId)
         val newCount = existing.size + 1
         val newAverage = (existing.sumOf { it.rating.toDouble() } + review.rating) / newCount
 

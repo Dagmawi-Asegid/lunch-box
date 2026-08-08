@@ -1,10 +1,11 @@
 package com.dagmawiasegid.lunchbox.data
 
+import com.google.firebase.firestore.DocumentId
 import com.google.firebase.firestore.ServerTimestamp
 import java.util.Date
 
 data class Review(
-    val id: String = "",
+    @DocumentId val id: String = "",
     val restaurantId: String = "",
     val userId: String = "",
     val userEmail: String = "",

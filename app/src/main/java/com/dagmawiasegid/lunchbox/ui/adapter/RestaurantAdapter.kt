@@ -1,15 +1,22 @@
 package com.dagmawiasegid.lunchbox.ui.adapter
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.dagmawiasegid.lunchbox.data.Restaurant
 import com.dagmawiasegid.lunchbox.databinding.ItemRestaurantBinding
+import com.dagmawiasegid.lunchbox.util.CuisineIcons
+import com.dagmawiasegid.lunchbox.util.DistanceUtil
 
 class RestaurantAdapter(
-    private val onClick: (Restaurant) -> Unit
+    private val onReviewClick: (Restaurant) -> Unit,
+    private val onDirectionsClick: (Restaurant) -> Unit,
+    private val onOrderClick: (Restaurant) -> Unit,
+    private val getUserLocation: () -> Pair<Double, Double>?
 ) : ListAdapter<Restaurant, RestaurantAdapter.ViewHolder>(DIFF) {
 
     inner class ViewHolder(private val binding: ItemRestaurantBinding) :
@@ -18,8 +25,42 @@ class RestaurantAdapter(
             binding.restaurantName.text = restaurant.name
             binding.restaurantLocation.text = restaurant.location
             binding.restaurantCuisine.text = restaurant.cuisine
-            binding.restaurantRating.text = String.format("%.1f ★ (%d)", restaurant.averageRating, restaurant.reviewCount)
-            binding.root.setOnClickListener { onClick(restaurant) }
+            binding.restaurantRating.text = if (restaurant.reviewCount > 0) {
+                String.format("%.1f ★ (%d)", restaurant.averageRating, restaurant.reviewCount)
+            } else {
+                "No reviews yet — be the first"
+            }
+
+            binding.cuisineEmoji.text = CuisineIcons.forCuisine(restaurant.cuisine)
+
+            if (restaurant.photoUrl != null) {
+                binding.restaurantPhoto.visibility = View.VISIBLE
+                binding.photoPlaceholder.visibility = View.GONE
+                binding.cuisineEmoji.visibility = View.GONE
+                Glide.with(binding.restaurantPhoto).load(restaurant.photoUrl).into(binding.restaurantPhoto)
+            } else {
+                binding.restaurantPhoto.visibility = View.GONE
+                binding.photoPlaceholder.visibility = View.VISIBLE
+                binding.cuisineEmoji.visibility = View.VISIBLE
+            }
+
+            val userLocation = getUserLocation()
+            val lat = restaurant.latitude
+            val lon = restaurant.longitude
+            if (userLocation != null && lat != null && lon != null) {
+                val meters = DistanceUtil.metersBetween(userLocation.first, userLocation.second, lat, lon)
+                binding.distanceBadge.visibility = View.VISIBLE
+                binding.distanceBadge.text = DistanceUtil.formatMiles(meters)
+            } else {
+                binding.distanceBadge.visibility = View.GONE
+            }
+
+            val hasLocation = lat != null && lon != null
+            binding.directionsButton.visibility = if (hasLocation) View.VISIBLE else View.GONE
+            binding.directionsButton.setOnClickListener { onDirectionsClick(restaurant) }
+
+            binding.orderButton.setOnClickListener { onOrderClick(restaurant) }
+            binding.reviewButton.setOnClickListener { onReviewClick(restaurant) }
         }
     }
 

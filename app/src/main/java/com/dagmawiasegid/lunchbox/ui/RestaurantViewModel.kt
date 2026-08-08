@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.dagmawiasegid.lunchbox.data.Restaurant
 import com.dagmawiasegid.lunchbox.data.RestaurantRepository
 import com.dagmawiasegid.lunchbox.data.SortOption
+import com.dagmawiasegid.lunchbox.util.DistanceUtil
 import kotlinx.coroutines.launch
 
 class RestaurantViewModel(
@@ -27,6 +28,13 @@ class RestaurantViewModel(
     private var lastLoaded: List<Restaurant> = emptyList()
     private var currentQuery: String = ""
 
+    // Set once we know the user's location, so DISTANCE sort can re-order
+    // the already-loaded list client-side (Firestore can't sort by
+    // distance-from-a-point without geohash indexing, which is overkill
+    // for this app's scale).
+    var userLocation: Pair<Double, Double>? = null
+        private set
+
     var currentSort: SortOption = SortOption.RATING
         private set
 
@@ -35,7 +43,7 @@ class RestaurantViewModel(
         viewModelScope.launch {
             try {
                 lastLoaded = repository.fetchRestaurants(sortBy, locationFilter)
-                _restaurants.value = applyQuery(lastLoaded)
+                _restaurants.value = present(lastLoaded)
                 _error.value = null
             } catch (e: Exception) {
                 _error.value = e.message ?: "Failed to load restaurants"
@@ -45,11 +53,33 @@ class RestaurantViewModel(
 
     fun search(query: String) {
         currentQuery = query
-        _restaurants.value = applyQuery(lastLoaded)
+        _restaurants.value = present(lastLoaded)
     }
 
-    private fun applyQuery(list: List<Restaurant>): List<Restaurant> {
-        if (currentQuery.isBlank()) return list
-        return list.filter { it.name.contains(currentQuery, ignoreCase = true) }
+    fun setUserLocation(latitude: Double, longitude: Double) {
+        userLocation = latitude to longitude
+        if (currentSort == SortOption.DISTANCE) {
+            _restaurants.value = present(lastLoaded)
+        }
+    }
+
+    private fun present(list: List<Restaurant>): List<Restaurant> {
+        val filtered = if (currentQuery.isBlank()) {
+            list
+        } else {
+            list.filter { it.name.contains(currentQuery, ignoreCase = true) }
+        }
+
+        if (currentSort != SortOption.DISTANCE) return filtered
+        val loc = userLocation ?: return filtered
+        return filtered.sortedBy { restaurant ->
+            val lat = restaurant.latitude
+            val lon = restaurant.longitude
+            if (lat != null && lon != null) {
+                DistanceUtil.metersBetween(loc.first, loc.second, lat, lon)
+            } else {
+                Double.MAX_VALUE
+            }
+        }
     }
 }

@@ -2,15 +2,40 @@ package com.dagmawiasegid.lunchbox.data
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.tasks.await
 
-enum class SortOption { NAME, LOCATION, RATING }
+enum class SortOption { NAME, LOCATION, RATING, DISTANCE }
 
 class RestaurantRepository(
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
 ) {
     private val restaurants = firestore.collection("restaurants")
     private val reviews = firestore.collection("reviews")
+
+    /**
+     * Imports/refreshes a restaurant discovered via OpenStreetMap nearby
+     * search. Keyed by a sanitized osmId so repeated syncs update the same
+     * document instead of creating duplicates. Deliberately omits
+     * averageRating/reviewCount from the merge payload so this never
+     * clobbers our own users' review data — those fields are only ever
+     * written by [submitReview].
+     */
+    suspend fun upsertFromPlace(place: NearbyPlace) {
+        val docId = place.osmId.replace("/", "_")
+        val data = mutableMapOf<String, Any?>(
+            "name" to place.name,
+            "location" to place.address,
+            "cuisine" to place.cuisine,
+            "osmId" to place.osmId,
+            "address" to place.address,
+            "latitude" to place.latitude,
+            "longitude" to place.longitude
+        )
+        if (place.photoUrl != null) data["photoUrl"] = place.photoUrl
+
+        restaurants.document(docId).set(data, SetOptions.merge()).await()
+    }
 
     suspend fun fetchRestaurants(
         sortBy: SortOption,
@@ -20,12 +45,17 @@ class RestaurantRepository(
             SortOption.NAME -> restaurants.orderBy("name")
             SortOption.LOCATION -> restaurants.orderBy("location")
             SortOption.RATING -> restaurants.orderBy("averageRating", Query.Direction.DESCENDING)
+            // Distance depends on the user's current position, which isn't
+            // something Firestore can sort by server-side here — the caller
+            // re-sorts the returned list client-side once it knows where
+            // the user is.
+            SortOption.DISTANCE -> restaurants.orderBy("name")
         }
 
         if (!locationFilter.isNullOrBlank()) {
             query = query
                 .whereGreaterThanOrEqualTo("location", locationFilter)
-                .whereLessThanOrEqualTo("location", locationFilter + "")
+                .whereLessThanOrEqualTo("location", locationFilter + "")
         }
 
         return query.get().await().toObjects(Restaurant::class.java)

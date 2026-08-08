@@ -12,8 +12,8 @@ android {
         applicationId = "com.dagmawiasegid.lunchbox"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "2.0"
         // Off by default so debug/release builds hit the real Firebase
         // project. Flip to "true" locally to point at the Firebase Local
         // Emulator Suite instead (see README).
@@ -67,6 +67,12 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
+
+    implementation("com.google.android.gms:play-services-location:21.3.0")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    implementation("org.osmdroid:osmdroid-android:6.1.20")
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")

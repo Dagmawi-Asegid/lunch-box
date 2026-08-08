@@ -3,6 +3,7 @@ package com.dagmawiasegid.lunchbox
 import android.app.Application
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import org.osmdroid.config.Configuration
 
 class LunchBoxApp : Application() {
     override fun onCreate() {
@@ -15,5 +16,14 @@ class LunchBoxApp : Application() {
             FirebaseAuth.getInstance().useEmulator("10.0.2.2", 9099)
             FirebaseFirestore.getInstance().useEmulator("10.0.2.2", 8081)
         }
+
+        // OSM's tile usage policy requires a distinctive user agent and a
+        // writable cache directory — without this, tile requests can get
+        // silently rate-limited/blocked.
+        Configuration.getInstance().load(
+            this,
+            android.preference.PreferenceManager.getDefaultSharedPreferences(this)
+        )
+        Configuration.getInstance().userAgentValue = packageName
     }
 }

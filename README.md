@@ -90,3 +90,17 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 To run against a real Firebase project instead, replace
 `app/google-services.json` with your own (from the Firebase console) and
 remove the `useEmulator(...)` calls in `LunchBoxApp.kt`.
+
+## Installing the release APK
+
+Releases from v1.2.0 onward are built with `./gradlew assembleRelease`,
+signed with a dedicated key (`app/release-key.jks`, committed — it's a
+self-signed demo cert with no real distribution behind it, not a secret)
+instead of Android's shared debug key. Debug-signed APKs are a strong
+signal Google Play Protect flags as "unknown," so this cuts down on that
+warning — though **any APK installed outside the Play Store will still
+show a Play Protect prompt on install**; that's inherent to sideloading,
+not something signing alone removes. If you see it, choose "More details"
+→ "Install anyway." This isn't malware — it's a fresh, unpublished student
+project, which is exactly the profile Play Protect is cautious about by
+design.

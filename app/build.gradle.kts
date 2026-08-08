@@ -20,10 +20,20 @@ android {
         buildConfigField("boolean", "USE_FIREBASE_EMULATOR", "false")
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("release-key.jks")
+            storePassword = "lunchboxdemo"
+            keyAlias = "lunchbox"
+            keyPassword = "lunchboxdemo"
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 

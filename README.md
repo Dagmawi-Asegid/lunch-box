@@ -6,8 +6,11 @@ submit star ratings + written reviews that update each restaurant's aggregate
 rating in real time.
 
 Built, installed, and driven end-to-end on a real Android emulator (API 34,
-arm64) against the [Firebase Local Emulator Suite](https://firebase.google.com/docs/emulator-suite)
-— not just written and hoped to compile. That process caught and fixed three
+arm64) — first against the [Firebase Local Emulator Suite](https://firebase.google.com/docs/emulator-suite)
+for local iteration, then against a real Firebase project (Auth + Firestore)
+for a standalone build that works on an actual device. Grab the installable
+APK from [Releases](https://github.com/Dagmawi-Asegid/lunch-box/releases).
+Not just written and hoped to compile — that process caught and fixed three
 real bugs along the way (see below).
 
 ## Features

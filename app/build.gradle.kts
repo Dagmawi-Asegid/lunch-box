@@ -14,6 +14,10 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
+        // Off by default so debug/release builds hit the real Firebase
+        // project. Flip to "true" locally to point at the Firebase Local
+        // Emulator Suite instead (see README).
+        buildConfigField("boolean", "USE_FIREBASE_EMULATOR", "false")
     }
 
     buildTypes {

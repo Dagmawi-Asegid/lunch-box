@@ -1,0 +1,30 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- handle -->
+    <path
+        android:pathData="M40,42 A14,14 0 0 1 68,42"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="6"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000" />
+
+    <!-- box body -->
+    <path
+        android:pathData="M30,40 L78,40 A10,10 0 0 1 88,50 L88,74 A10,10 0 0 1 78,84 L30,84 A10,10 0 0 1 20,74 L20,50 A10,10 0 0 1 30,40 Z"
+        android:fillColor="#FFFFFF" />
+
+    <!-- lid stripe -->
+    <path
+        android:pathData="M30,40 L78,40 A10,10 0 0 1 88,50 L88,53 L20,53 L20,50 A10,10 0 0 1 30,40 Z"
+        android:fillColor="#C6852A" />
+
+    <!-- latch -->
+    <path
+        android:pathData="M50,48 L58,48 A3,3 0 0 1 61,51 L61,55 A3,3 0 0 1 58,58 L50,58 A3,3 0 0 1 47,55 L47,51 A3,3 0 0 1 50,48 Z"
+        android:fillColor="#1C1F24" />
+
+</vector>

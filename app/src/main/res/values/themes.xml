@@ -1,0 +1,9 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Theme.LunchBox" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">#E8A33D</item>
+        <item name="colorPrimaryVariant">#C6852A</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorSecondary">#3D6E8A</item>
+        <item name="android:statusBarColor" tools:targetApi="l">#C6852A</item>
+    </style>
+</resources>

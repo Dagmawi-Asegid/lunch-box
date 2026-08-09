@@ -10,7 +10,9 @@ import com.bumptech.glide.Glide
 import com.dagmawiasegid.lunchbox.data.Restaurant
 import com.dagmawiasegid.lunchbox.databinding.ItemRestaurantBinding
 import com.dagmawiasegid.lunchbox.util.CuisineIcons
+import com.dagmawiasegid.lunchbox.util.CuisinePhotos
 import com.dagmawiasegid.lunchbox.util.DistanceUtil
+import com.dagmawiasegid.lunchbox.util.LandmarkContext
 
 class RestaurantAdapter(
     private val onReviewClick: (Restaurant) -> Unit,
@@ -33,11 +35,16 @@ class RestaurantAdapter(
 
             binding.cuisineEmoji.text = CuisineIcons.forCuisine(restaurant.cuisine)
 
-            if (restaurant.photoUrl != null) {
+            // Prefer the restaurant's own real photo (rare — only when OSM
+            // has one); otherwise fall back to a real, freely-licensed
+            // photo representative of the cuisine; otherwise the emoji
+            // banner as a last resort.
+            val bannerUrl = restaurant.photoUrl ?: CuisinePhotos.forCuisine(restaurant.cuisine)
+            if (bannerUrl != null) {
                 binding.restaurantPhoto.visibility = View.VISIBLE
                 binding.photoPlaceholder.visibility = View.GONE
                 binding.cuisineEmoji.visibility = View.GONE
-                Glide.with(binding.restaurantPhoto).load(restaurant.photoUrl).into(binding.restaurantPhoto)
+                Glide.with(binding.restaurantPhoto).load(bannerUrl).into(binding.restaurantPhoto)
             } else {
                 binding.restaurantPhoto.visibility = View.GONE
                 binding.photoPlaceholder.visibility = View.VISIBLE
@@ -53,6 +60,14 @@ class RestaurantAdapter(
                 binding.distanceBadge.text = DistanceUtil.formatMiles(meters)
             } else {
                 binding.distanceBadge.visibility = View.GONE
+            }
+
+            val landmark = if (lat != null && lon != null) LandmarkContext.forLocation(lat, lon) else null
+            if (landmark != null) {
+                binding.landmarkContext.visibility = View.VISIBLE
+                binding.landmarkContext.text = landmark
+            } else {
+                binding.landmarkContext.visibility = View.GONE
             }
 
             val hasLocation = lat != null && lon != null

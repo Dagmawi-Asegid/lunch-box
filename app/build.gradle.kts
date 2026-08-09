@@ -12,8 +12,8 @@ android {
         applicationId = "com.dagmawiasegid.lunchbox"
         minSdk = 24
         targetSdk = 34
-        versionCode = 2
-        versionName = "2.0"
+        versionCode = 3
+        versionName = "2.1"
         // Off by default so debug/release builds hit the real Firebase
         // project. Flip to "true" locally to point at the Firebase Local
         // Emulator Suite instead (see README).

@@ -15,12 +15,15 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.dagmawiasegid.lunchbox.data.OverpassRepository
+import com.dagmawiasegid.lunchbox.data.PromotionRepository
 import com.dagmawiasegid.lunchbox.data.Restaurant
 import com.dagmawiasegid.lunchbox.data.RestaurantRepository
 import com.dagmawiasegid.lunchbox.data.SortOption
 import com.dagmawiasegid.lunchbox.databinding.ActivityMainBinding
+import com.dagmawiasegid.lunchbox.ui.QuickFilter
 import com.dagmawiasegid.lunchbox.ui.RestaurantViewModel
 import com.dagmawiasegid.lunchbox.ui.adapter.RestaurantAdapter
+import com.dagmawiasegid.lunchbox.util.DealsNotifier
 import com.google.android.gms.location.LocationServices
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
@@ -36,6 +39,15 @@ class MainActivity : AppCompatActivity() {
     private lateinit var adapter: RestaurantAdapter
     private val restaurantRepository = RestaurantRepository()
     private val overpassRepository = OverpassRepository()
+    private val promotionRepository = PromotionRepository()
+
+    private val notificationPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            // Re-check deals once we actually have permission — the initial
+            // check in onCreate() runs before the user has answered this
+            // prompt, so the notification would silently no-op on first launch.
+            if (granted) checkForDeals()
+        }
 
     private val sortLabels = listOf("Top rated", "Nearest", "Name (A-Z)", "Location")
 
@@ -110,6 +122,8 @@ class MainActivity : AppCompatActivity() {
             requestLocationAndSearchNearby()
         }
 
+        setupQuickFilters()
+
         viewModel.restaurants.observe(this) { list ->
             adapter.submitList(list)
             updateMapMarkers(list)
@@ -121,6 +135,8 @@ class MainActivity : AppCompatActivity() {
 
         viewModel.load()
         requestLocationAndSearchNearby()
+        requestNotificationPermission()
+        checkForDeals()
     }
 
     override fun onResume() {
@@ -136,6 +152,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreateOptionsMenu(menu: android.view.Menu): Boolean {
+        menu.add("🎉 Deals near you").setOnMenuItemClickListener {
+            startActivity(Intent(this, DealsActivity::class.java))
+            true
+        }
         menu.add("Find restaurants near me").setOnMenuItemClickListener {
             requestLocationAndSearchNearby()
             true
@@ -147,6 +167,56 @@ class MainActivity : AppCompatActivity() {
             true
         }
         return true
+    }
+
+    private fun setupQuickFilters() {
+        val chips = mapOf(
+            binding.filterAll to QuickFilter.ALL,
+            binding.filterBurgers to QuickFilter.BURGERS_AND_FAST_FOOD,
+            binding.filterCafes to QuickFilter.CAFES,
+            binding.filterTopRated to QuickFilter.REVIEWED
+        )
+        chips.forEach { (button, filter) ->
+            button.setOnClickListener {
+                viewModel.setQuickFilter(filter)
+                chips.keys.forEach { b ->
+                    b.setBackgroundResource(
+                        if (b == button) R.drawable.bg_chip_selected else R.drawable.bg_chip
+                    )
+                    b.setTextColor(
+                        resources.getColor(
+                            if (b == button) android.R.color.white else android.R.color.black,
+                            theme
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    private fun requestNotificationPermission() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            val granted = ContextCompat.checkSelfPermission(
+                this, Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+            if (!granted) {
+                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
+
+    private fun checkForDeals() {
+        lifecycleScope.launch {
+            try {
+                val deals = promotionRepository.fetchPromotions()
+                if (deals.isNotEmpty()) {
+                    DealsNotifier.notifyNewDeals(this@MainActivity, deals.size)
+                }
+            } catch (e: Exception) {
+                // Deals are a nice-to-have; failing silently here is fine —
+                // the Deals menu item will show the real error if the user opens it.
+            }
+        }
     }
 
     private fun setupMap() {

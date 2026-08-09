@@ -28,13 +28,19 @@ class RestaurantRepository(
             "location" to place.address,
             "cuisine" to place.cuisine,
             "osmId" to place.osmId,
+            "amenityType" to place.amenityType,
             "address" to place.address,
             "latitude" to place.latitude,
             "longitude" to place.longitude
         )
+        if (place.brand != null) data["brand"] = place.brand
         if (place.photoUrl != null) data["photoUrl"] = place.photoUrl
 
         restaurants.document(docId).set(data, SetOptions.merge()).await()
+    }
+
+    suspend fun deleteRestaurant(restaurantId: String) {
+        restaurants.document(restaurantId).delete().await()
     }
 
     suspend fun fetchRestaurants(

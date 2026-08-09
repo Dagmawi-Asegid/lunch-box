@@ -13,6 +13,8 @@ data class NearbyPlace(
     val osmId: String,
     val name: String,
     val cuisine: String,
+    val amenityType: String,
+    val brand: String?,
     val address: String,
     val latitude: Double,
     val longitude: Double,
@@ -20,17 +22,17 @@ data class NearbyPlace(
 )
 
 /**
- * Finds nearby restaurants via OpenStreetMap's free Overpass API — no
- * billing, no API key, no rate-limit signup. Trade-off vs. Google Places:
- * no ratings/review counts and photos are rare (only when a contributor
- * added an `image` tag), coverage varies more by area, but it's genuinely
- * free with no usage cap tied to a credit card.
+ * Finds nearby restaurants, cafes, and fast food via OpenStreetMap's free
+ * Overpass API — no billing, no API key, no rate-limit signup. Trade-off
+ * vs. Google Places: no ratings/review counts and photos are rare (only
+ * when a contributor added an `image` tag), coverage varies more by area,
+ * but it's genuinely free with no usage cap tied to a credit card.
  */
 class OverpassRepository {
 
     private val client = OkHttpClient()
 
-    suspend fun searchNearby(latitude: Double, longitude: Double, radiusMeters: Int = 1500): List<NearbyPlace> =
+    suspend fun searchNearby(latitude: Double, longitude: Double, radiusMeters: Int = 4000): List<NearbyPlace> =
         withContext(Dispatchers.IO) {
             var lastError: Exception? = null
             // The public Overpass instance is shared/free and occasionally
@@ -50,11 +52,17 @@ class OverpassRepository {
         }
 
     private fun fetchOnce(latitude: Double, longitude: Double, radiusMeters: Int): List<NearbyPlace> {
+        val amenities = listOf("restaurant", "fast_food", "cafe")
+        val clauses = amenities.joinToString("\n") { amenity ->
+            """
+              node["amenity"="$amenity"](around:$radiusMeters,$latitude,$longitude);
+              way["amenity"="$amenity"](around:$radiusMeters,$latitude,$longitude);
+            """.trimIndent()
+        }
         val query = """
             [out:json][timeout:25];
             (
-              node["amenity"="restaurant"](around:$radiusMeters,$latitude,$longitude);
-              way["amenity"="restaurant"](around:$radiusMeters,$latitude,$longitude);
+            $clauses
             );
             out center tags;
         """.trimIndent()
@@ -89,6 +97,7 @@ class OverpassRepository {
     private fun parseElement(element: JSONObject): NearbyPlace? {
         val tags = element.optJSONObject("tags") ?: return null
         val name = tags.optString("name").takeIf { it.isNotBlank() } ?: return null
+        val amenityType = tags.optString("amenity", "restaurant")
 
         val lat: Double
         val lon: Double
@@ -106,7 +115,11 @@ class OverpassRepository {
             ?.replace("_", " ")
             ?.replaceFirstChar { it.uppercase(Locale.US) }
             ?.takeIf { it.isNotBlank() }
-            ?: "Restaurant"
+            ?: when (amenityType) {
+                "cafe" -> "Cafe"
+                "fast_food" -> "Fast Food"
+                else -> "Restaurant"
+            }
 
         val houseNumber = tags.optString("addr:housenumber")
         val street = tags.optString("addr:street")
@@ -127,6 +140,8 @@ class OverpassRepository {
             osmId = "${element.optString("type", "node")}/${element.optLong("id")}",
             name = name,
             cuisine = cuisine,
+            amenityType = amenityType,
+            brand = tags.optString("brand").takeIf { it.isNotBlank() },
             address = address,
             latitude = lat,
             longitude = lon,

@@ -11,7 +11,9 @@
         android:layout_height="?attr/actionBarSize"
         android:background="#E8A33D"
         android:title="Lunch Box"
-        android:titleTextColor="#FFFFFF" />
+        android:subtitle="Poughkeepsie &amp; Vassar"
+        android:titleTextColor="#FFFFFF"
+        android:subtitleTextColor="#FFF3E0" />
 
     <org.osmdroid.views.MapView
         android:id="@+id/mapView"
@@ -39,6 +41,77 @@
             android:layout_marginStart="8dp" />
 
     </LinearLayout>
+
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingHorizontal="12dp"
+            android:paddingBottom="10dp">
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/filterAll"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_chip_selected"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="6dp"
+                android:text="All"
+                android:textAllCaps="false"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/filterBurgers"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_chip"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="6dp"
+                android:text="🍔 Burgers &amp; Fast Food"
+                android:textAllCaps="false"
+                android:textColor="#1C1F24"
+                android:textSize="13sp" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/filterCafes"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_chip"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="6dp"
+                android:text="☕ Cafes"
+                android:textAllCaps="false"
+                android:textColor="#1C1F24"
+                android:textSize="13sp" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/filterTopRated"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_chip"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="6dp"
+                android:text="⭐ Top Rated"
+                android:textAllCaps="false"
+                android:textColor="#1C1F24"
+                android:textSize="13sp" />
+
+        </LinearLayout>
+
+    </HorizontalScrollView>
 
     <TextView
         android:id="@+id/errorText"

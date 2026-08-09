@@ -29,10 +29,12 @@
 
     <Button
         android:id="@+id/decreaseButton"
-        style="?android:attr/borderlessButtonStyle"
+        style="?attr/borderlessButtonStyle"
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:text="–"
+        android:textColor="?attr/colorPrimary"
+        android:textStyle="bold"
         android:textSize="18sp" />
 
     <TextView
@@ -45,10 +47,12 @@
 
     <Button
         android:id="@+id/increaseButton"
-        style="?android:attr/borderlessButtonStyle"
+        style="?attr/borderlessButtonStyle"
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:text="+"
+        android:textColor="?attr/colorPrimary"
+        android:textStyle="bold"
         android:textSize="18sp" />
 
 </LinearLayout>

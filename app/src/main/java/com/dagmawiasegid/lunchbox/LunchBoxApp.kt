@@ -1,6 +1,7 @@
 package com.dagmawiasegid.lunchbox
 
 import android.app.Application
+import com.dagmawiasegid.lunchbox.util.DealsNotifier
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import org.osmdroid.config.Configuration
@@ -25,5 +26,7 @@ class LunchBoxApp : Application() {
             android.preference.PreferenceManager.getDefaultSharedPreferences(this)
         )
         Configuration.getInstance().userAgentValue = packageName
+
+        DealsNotifier.createChannel(this)
     }
 }
